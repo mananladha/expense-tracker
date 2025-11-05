@@ -1,5 +1,5 @@
 // Configuration
-const API_URL = 'https://expense-tracker-api-j6o0.onrender.com';
+const API_URL = 'https://expense-tracker-api-j6o0.onrender.com/api';
 
 // Global State
 let currentUser = null;
