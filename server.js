@@ -1,23 +1,22 @@
-const path = require('path'); // Import the 'path' module (built-in to Node.js)
-require('dotenv').config({ path: path.resolve(__dirname, '.env') }); // Explicitly point to .env in the current directory
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') }); 
 
 // ... rest of your logging and server code ...
-//✅ CHANGE THE LOGGING TO THIS:
 console.log('--- Environment Variables after dotenv load ---');
-console.log(process.env); // Print the whole object
+console.log(process.env); 
 console.log('---------------------------------------------');
-console.log('EMAIL_USER Check:', process.env.EMAIL_USER ? 'Found' : 'MISSING'); // Keep this check too
+console.log('EMAIL_USER Check:', process.env.EMAIL_USER ? 'Found' : 'MISSING');
 console.log('EMAIL_PASSWORD Check:', process.env.EMAIL_PASSWORD ? 'Found' : 'MISSING');
 console.log('---------------------------------------------');
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); // Load environment variables
+const cors = require('cors'); 
 
 const app = express();
 const PORT = process.env.PORT || 3000; 
 
 // --- Database Connection ---
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://mananladha_db_user:iT3Vk0IVEfDjeRVn@expense.owqxgkl.mongodb.net/?appName=Expense';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://mananladha_db_user:mDzTZmLGAqTWaMLR@expense.owqxgkl.mongodb.net/?appName=Expense';
 
 // --- Middleware ---
 // Request logger
@@ -32,10 +31,35 @@ app.use((req, res, next) => {
   next();
 });
  
-// Enable CORS
+// ⭐️ FIXED CORS CONFIGURATION ⭐️
+const allowedOrigins = [
+    // Local development origins
+    'http://localhost:5500', 
+    'http://127.0.0.1:5500', 
+    'http://localhost:5501', 
+    'http://127.0.0.1:5501',
+    
+    // Live GitHub Pages Subdomain
+    'https://expense-tracker.mananladha.in', 
+    
+    // Render's public URL (to allow the service itself to access its own API if needed)
+    process.env.RENDER_EXTERNAL_URL 
+];
+
 app.use(cors({
-    origin: ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:5501', 'http://127.0.0.1:5501'],
-    methods: ['GET', 'POST', 'DELETE', 'OPTIONS','PUT'],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // Allow the origin if it's in our allowed list
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+            console.error('CORS Blocked:', msg);
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS', 'PUT'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
