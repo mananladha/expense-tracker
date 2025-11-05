@@ -93,6 +93,8 @@ router.post('/send', auth, async (req, res) => {
       return res.status(400).json({ message: 'Start and end dates are required' });
     }
 
+    console.log(`📊 Generating report for user ${req.user.id}: ${startDate} to ${endDate}`);
+
     const { report, summary } = await generateReport(startDate, endDate, req.user.id);
     const user = await User.findById(req.user.id);
 
@@ -101,14 +103,17 @@ router.post('/send', auth, async (req, res) => {
     // Send SMS
     if (method === 'sms' || method === 'both') {
       try {
-        if (!user.phone) {
+        // Use user phone if available, otherwise try env phone
+        const recipientPhone = user.phone || process.env.YOUR_PHONE_NUMBER;
+        
+        if (!recipientPhone) {
           results.sms = { success: false, error: 'Phone number not configured. Please update in settings.' };
         } else {
-          // Import SMS service
           const { sendSMS } = require('../services/smsService');
-          results.sms = await sendSMS(user.phone, report);
+          results.sms = await sendSMS(recipientPhone, report);
         }
       } catch (error) {
+        console.error('SMS Error:', error);
         results.sms = { success: false, error: error.message };
       }
     }
@@ -116,17 +121,27 @@ router.post('/send', auth, async (req, res) => {
     // Send Email
     if (method === 'email' || method === 'both') {
       try {
-        if (!user.email) {
-          results.email = { success: false, error: 'Email not configured. Please update in settings.' };
+        // Use user email if available, otherwise use env email
+        const recipientEmail = user.email || process.env.RECIPIENT_EMAIL || process.env.EMAIL_USER;
+        
+        console.log(`📧 Attempting to send email to: ${recipientEmail}`);
+        
+        if (!recipientEmail) {
+          results.email = { 
+            success: false, 
+            error: 'Email not configured. Please add email in Settings page.' 
+          };
         } else {
-          // Import Email service
           const { sendEmail } = require('../services/emailService');
-          results.email = await sendEmail(user.email, report, summary);
+          results.email = await sendEmail(recipientEmail, report, summary);
         }
       } catch (error) {
+        console.error('Email Error:', error);
         results.email = { success: false, error: error.message };
       }
     }
+
+    console.log('📊 Report results:', results);
 
     res.json({
       success: true,
@@ -134,7 +149,7 @@ router.post('/send', auth, async (req, res) => {
       results
     });
   } catch (error) {
-    console.error('Error sending report:', error);
+    console.error('❌ Error sending report:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
