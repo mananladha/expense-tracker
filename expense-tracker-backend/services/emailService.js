@@ -22,6 +22,16 @@ function generateHTMLEmail(reportText, summary) {
   const cashBalance = accounts.cash || 0;
   const bank1Balance = accounts.bank1 || 0;
   const bank2Balance = accounts.bank2 || 0;
+  const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: process.env.SMTP_PORT || 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+
   
   return `
     <!DOCTYPE html>
