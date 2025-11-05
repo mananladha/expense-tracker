@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const { generateReport, getDateRange } = require('./reportService'); 
 const { sendEmail } = require('./emailService');
-const User = require('../models/User'); 
+const User = require('../models/user'); 
 
 function startScheduler() {
   // 11 PM daily (23:00 hours)

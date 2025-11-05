@@ -1,72 +1,6 @@
 const nodemailer = require('nodemailer');
 
 /**
- * Sends an expense report email to one or more recipients.
- * * @param {string} recipientString - Comma-separated string of recipient emails.
- * @param {string} reportText - The plain text transaction list.
- * @param {object} summary - The summary object containing dates, totals, and accounts.
- * @returns {Promise<{success: boolean, error?: string, messageId?: string}>}
- */
-async function sendEmail(recipientString, reportText, summary) {
-  try {
-    // 1. CRITICAL FIX: Validate summary object exists and has required properties
-    if (!summary || typeof summary.startDate === 'undefined' || typeof summary.endDate === 'undefined') {
-      console.error('❌ Error: summary object is incomplete or undefined. Skipping email send.');
-      return {
-        success: false,
-        error: 'Summary object is incomplete or undefined.'
-      };
-    }
-    
-    // Check if email is configured
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.log('⚠️ Email not configured. Skipping email send.');
-      return { 
-        success: false, 
-        error: 'Email not configured in .env file' 
-      };
-    }
-    
-    // 2. Check if recipients are provided
-    if (!recipientString) {
-        console.warn('⚠️ No email recipients provided. Skipping email send.');
-        return {
-            success: false,
-            error: 'No email recipients provided.'
-        };
-    }
-
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      // FIX: Use the recipient string directly (allows multiple recipients)
-      to: recipientString, 
-      subject: `💰 Expense Report - ${summary.startDate} to ${summary.endDate}`,
-      text: reportText,
-      // Pass the HTML content generated below
-      html: generateHTMLEmail(reportText, summary) 
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully:', info.messageId);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('❌ Error sending email:', error.message);
-    return { 
-      success: false, 
-      error: error.message 
-    };
-  }
-}
-
-/**
  * Generates the HTML body of the expense report email with safety checks.
  */
 function generateHTMLEmail(reportText, summary) {
@@ -129,6 +63,75 @@ function generateHTMLEmail(reportText, summary) {
     </body>
     </html>
   `;
+}
+
+/**
+ * Sends an expense report email to one or more recipients.
+ * @param {string} recipientString - Comma-separated string of recipient emails.
+ * @param {string} reportText - The plain text transaction list.
+ * @param {object} summary - The summary object containing dates, totals, and accounts.
+ * @returns {Promise<{success: boolean, error?: string, messageId?: string}>}
+ */
+async function sendEmail(recipientString, reportText, summary) {
+  try {
+    // 1. CRITICAL FIX: Validate summary object exists and has required properties
+    if (!summary || typeof summary.startDate === 'undefined' || typeof summary.endDate === 'undefined') {
+      console.error('❌ Error: summary object is incomplete or undefined. Skipping email send.');
+      return {
+        success: false,
+        error: 'Summary object is incomplete or undefined.'
+      };
+    }
+    
+    // Check if email is configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      console.log('⚠️ Email not configured. Skipping email send.');
+      return { 
+        success: false, 
+        error: 'Email not configured in environment variables' 
+      };
+    }
+    
+    // 2. Check if recipients are provided
+    if (!recipientString) {
+        console.warn('⚠️ No email recipients provided. Skipping email send.');
+        return {
+            success: false,
+            error: 'No email recipients provided.'
+        };
+    }
+
+    // ⭐️ FINAL FIX: Use explicit host, port, and security settings ⭐️
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com', 
+      port: 465,             
+      secure: true,          
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+      }
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      // FIX: Use the recipient string directly (allows multiple recipients)
+      to: recipientString, 
+      subject: `💰 Expense Report - ${summary.startDate} to ${summary.endDate}`,
+      text: reportText,
+      // Pass the HTML content generated below
+      html: generateHTMLEmail(reportText, summary) 
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('❌ Error sending email:', error.message);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
 }
 
 module.exports = {
