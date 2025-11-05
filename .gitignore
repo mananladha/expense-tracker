@@ -1,0 +1,8 @@
+# Add this content to a file named .gitignore
+
+# Dependencies
+/node_modules
+
+# Environment Variables
+.env
+process.env.DS_Store
