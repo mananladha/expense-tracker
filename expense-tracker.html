@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Expense Tracker - Multi-User</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Poppins,'Inter', system-ui, -apple-system, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">💼</h1>
+                <h2 class="text-2xl font-bold text-gray-800">Expense Tracker</h2>
+                <p class="text-gray-600 mt-2">Login to manage your expenses</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <input type="text" id="loginUsername" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Enter username">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="loginPassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Enter password">
+                </div>
+
+                <button id="loginBtn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                    Login
+                </button>
+
+                <div class="text-center pt-4 border-t">
+                    <p class="text-sm text-gray-600 mb-2">Don't have an account?</p>
+                    <button id="showRegisterBtn" class="text-indigo-600 font-semibold hover:text-indigo-700">
+                        Create Account
+                    </button>
+                </div>
+            </div>
+
+            <div id="loginError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <!-- Register Screen -->
+    <div id="registerScreen" class="min-h-screen flex items-center justify-center p-4" style="display: none;">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">📝</h1>
+                <h2 class="text-2xl font-bold text-gray-800">Create Account</h2>
+                <p class="text-gray-600 mt-2">Sign up to start tracking</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <input type="text" id="registerName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Enter your name">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <input type="text" id="registerUsername" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Choose username">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="registerPassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Choose password">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                    <input type="password" id="registerConfirmPassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="Confirm password">
+                </div>
+
+                <button id="registerBtn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                    Create Account
+                </button>
+
+                <div class="text-center pt-4 border-t">
+                    <p class="text-sm text-gray-600 mb-2">Already have an account?</p>
+                    <button id="showLoginBtn" class="text-indigo-600 font-semibold hover:text-indigo-700">
+                        Back to Login
+                    </button>
+                </div>
+            </div>
+
+            <div id="registerError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="p-4" style="display: none;">
+        <div class="max-w-6xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            💼 Daily Expense Tracker
+                            <span id="connectionStatus" class="text-sm font-normal">🔴 Connecting...</span>
+                        </h1>
+                        <p class="text-gray-600">Welcome, <span id="userName" class="font-semibold"></span>!</p>
+                    </div>
+                    <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition">
+                        Logout
+                    </button>
+                </div>
+            </div>
+
+            <div id="balanceCards" class="grid md:grid-cols-4 gap-4 mb-6"></div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        ➕ Add Transaction
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex gap-4">
+                            <button id="creditBtn" class="flex-1 py-3 rounded-lg font-semibold transition bg-gray-100 text-gray-600">
+                                Credit (+)
+                            </button>
+                            <button id="debitBtn" class="flex-1 py-3 rounded-lg font-semibold transition bg-red-500 text-white">
+                                Debit (-)
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
+                            <input type="number" id="amount" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="0.00">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Mode</label>
+                            <select id="mode" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                <option value="cash">Cash</option>
+                                <option value="bank1">ICICI</option>
+                                <option value="bank2">BOB</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Item/Description</label>
+                            <input type="text" id="item" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="e.g., Groceries, Salary">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input type="date" id="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+
+                        <button id="addBtn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                            Add Transaction
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        🔍 Filters & Summary
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quick Filters</label>
+                            <div class="grid grid-cols-3 gap-2 mb-4">
+                                <button id="todayBtn" class="px-3 py-2 rounded-lg text-sm font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition">
+                                    Today
+                                </button>
+                                <button id="yesterdayBtn" class="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                                    Yesterday
+                                </button>
+                                <button id="thisWeekBtn" class="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                                    This Week
+                                </button>
+                                <button id="thisMonthBtn" class="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                                    This Month
+                                </button>
+                                <button id="lastMonthBtn" class="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                                    Last Month
+                                </button>
+                                <button id="customBtn" class="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                                    Custom
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="customDateSection">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                <input type="date" id="startDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                                <input type="date" id="endDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                            <select id="filterType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                                <option value="all">All Transactions</option>
+                                <option value="credit">Credit Only</option>
+                                <option value="debit">Debit Only</option>
+                            </select>
+                        </div>
+
+                        <div class="pt-4 border-t">
+                            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-gray-600">Total Credit:</span>
+                                    <span id="totalCredit" class="font-bold text-green-600">₹0.00</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Total Debit:</span>
+                                    <span id="totalDebit" class="font-bold text-red-600">₹0.00</span>
+                                </div>
+                            </div>
+
+                            <button id="toggleSummary" class="w-full bg-indigo-100 text-indigo-700 py-2 rounded-lg font-semibold hover:bg-indigo-200 transition mb-2">
+                                Show Summary
+                            </button>
+
+                            <button id="downloadBtn" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2 mb-2">
+                                📥 Download Summary
+                            </button>
+
+                            <!-- NEW: Send Reports Section -->
+                            <div class="pt-4 border-t mt-4">
+                                <h3 class="text-sm font-semibold text-gray-700 mb-3">📨 Send Report</h3>
+                                <div class="space-y-2">
+                                    <button id="sendEmailBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                                        📧 Send via Email
+                                    </button>
+                                    <button id="sendSMSBtn" class="w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 transition flex items-center justify-center gap-2">
+                                        📱 Send via SMS
+                                    </button>
+                                    <button id="sendBothBtn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition flex items-center justify-center gap-2">
+                                        📨 Send Both
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="summarySection" class="bg-white rounded-xl shadow-lg p-6 mb-6" style="display: none;">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Summary Report</h2>
+                <pre id="summaryText" class="bg-gray-50 p-4 rounded-lg text-sm overflow-x-auto whitespace-pre-wrap"></pre>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    📅 Recent Transactions (<span id="transCount">0</span>)
+                </h2>
+                <div id="transactionsList" class="space-y-2 max-h-96 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        
+        let currentUser = null;
+        let transactions = [];
+        let accounts = [
+            { id: 'cash', name: 'Cash', balance: 0 },
+            { id: 'bank1', name: 'ICICI', balance: 0 },
+            { id: 'bank2', name: 'BOB', balance: 0 }
+        ];
+        let currentType = 'debit';
+        let showSummary = false;
+        let activeFilter = 'today';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            setupAuthListeners();
+        });
+
+        function setupAuthListeners() {
+            document.getElementById('loginBtn').addEventListener('click', handleLogin);
+            document.getElementById('registerBtn').addEventListener('click', handleRegister);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            document.getElementById('showRegisterBtn').addEventListener('click', () => {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('registerScreen').style.display = 'flex';
+            });
+            document.getElementById('showLoginBtn').addEventListener('click', () => {
+                document.getElementById('registerScreen').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'flex';
+            });
+
+            document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+            document.getElementById('registerConfirmPassword').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleRegister();
+            });
+        }
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (token && user) {
+                currentUser = JSON.parse(user);
+                showApp();
+            }
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!username || !password) {
+                showError(errorDiv, 'Please enter username and password');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Login failed');
+                }
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                currentUser = data.user;
+                
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                errorDiv.classList.add('hidden');
+                
+                showApp();
+            } catch (error) {
+                console.error('Login error:', error);
+                showError(errorDiv, error.message);
+            }
+        }
+
+        async function handleRegister() {
+            const name = document.getElementById('registerName').value.trim();
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            const errorDiv = document.getElementById('registerError');
+
+            if (!name || !username || !password || !confirmPassword) {
+                showError(errorDiv, 'Please fill in all fields');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError(errorDiv, 'Passwords do not match');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError(errorDiv, 'Password must be at least 6 characters');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Registration failed');
+                }
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                currentUser = data.user;
+                
+                document.getElementById('registerName').value = '';
+                document.getElementById('registerUsername').value = '';
+                document.getElementById('registerPassword').value = '';
+                document.getElementById('registerConfirmPassword').value = '';
+                errorDiv.classList.add('hidden');
+                
+                showApp();
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError(errorDiv, error.message);
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                currentUser = null;
+                transactions = [];
+                
+                document.getElementById('app').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('registerScreen').style.display = 'none';
+            }
+        }
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            setTimeout(() => element.classList.add('hidden'), 5000);
+        }
+
+        function showApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('registerScreen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            document.getElementById('userName').textContent = currentUser.name;
+            
+            initializeDates();
+            setupEventListeners();
+            loadTransactions();
+        }
+
+        function updateConnectionStatus(connected) {
+            const status = document.getElementById('connectionStatus');
+            if (connected) {
+                status.textContent = '🟢 Connected to Database';
+                status.className = 'text-sm font-normal text-green-600';
+            } else {
+                status.textContent = '🔴 Disconnected';
+                status.className = 'text-sm font-normal text-red-600';
+            }
+        }
+
+        async function loadTransactions() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/transactions?_=${Date.now()}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        handleLogout();
+                        return;
+                    }
+                    throw new Error('Failed to fetch');
+                }
+                
+                transactions = await response.json();
+                updateConnectionStatus(true);
+                render();
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                updateConnectionStatus(false);
+                alert('Could not connect to server. Make sure backend is running on http://localhost:3000');
+            }
+        }
+
+        function initializeDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            setQuickFilter('today');
+        }
+
+        function setupEventListeners() {
+            document.getElementById('creditBtn').addEventListener('click', () => setType('credit'));
+            document.getElementById('debitBtn').addEventListener('click', () => setType('debit'));
+            document.getElementById('addBtn').addEventListener('click', addTransaction);
+            document.getElementById('toggleSummary').addEventListener('click', toggleSummarySection);
+            document.getElementById('downloadBtn').addEventListener('click', downloadSummary);
+            document.getElementById('startDate').addEventListener('change', () => {
+                setQuickFilter('custom');
+                render();
+            });
+            document.getElementById('endDate').addEventListener('change', () => {
+                setQuickFilter('custom');
+                render();
+            });
+            document.getElementById('filterType').addEventListener('change', render);
+
+            document.getElementById('todayBtn').addEventListener('click', () => setQuickFilter('today'));
+            document.getElementById('yesterdayBtn').addEventListener('click', () => setQuickFilter('yesterday'));
+            document.getElementById('thisWeekBtn').addEventListener('click', () => setQuickFilter('thisWeek'));
+            document.getElementById('thisMonthBtn').addEventListener('click', () => setQuickFilter('thisMonth'));
+            document.getElementById('lastMonthBtn').addEventListener('click', () => setQuickFilter('lastMonth'));
+            document.getElementById('customBtn').addEventListener('click', () => setQuickFilter('custom'));
+
+            // NEW: Report sending buttons
+            document.getElementById('sendEmailBtn').addEventListener('click', () => sendReport('email'));
+            document.getElementById('sendSMSBtn').addEventListener('click', () => sendReport('sms'));
+            document.getElementById('sendBothBtn').addEventListener('click', () => sendReport('both'));
+        }
+
+        // NEW: Send Report Function
+        // NEW: Send Report Function with actual dates
+        async function sendReport(method) {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        if (!startDate || !endDate) {
+            alert('Please select start and end dates');
+            return;
+        }
+
+        // Calculate interval for display purposes
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        
+        let intervalText = 'custom';
+        if (daysDiff === 0) intervalText = 'daily';
+        else if (daysDiff <= 7) intervalText = 'weekly';
+        else if (daysDiff <= 31) intervalText = 'monthly';
+
+        const methodText = method === 'both' ? 'Email & SMS' : method === 'email' ? 'Email' : 'SMS';
+        
+        if (!confirm(`Send report for ${startDate} to ${endDate} via ${methodText}?`)) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            
+            // ✅ IMPORTANT: Send actual startDate and endDate, not just interval
+            const response = await fetch(`${API_URL}/reports/send`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ 
+                    startDate,    // ✅ Send actual date
+                    endDate,      // ✅ Send actual date
+                    method 
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to send report');
+            }
+
+            let message = 'Report sent successfully!\n\n';
+            if (data.results.sms) {
+                message += data.results.sms.success ? '✅ SMS sent\n' : '❌ SMS failed: ' + data.results.sms.error + '\n';
+            }
+            if (data.results.email) {
+                message += data.results.email.success ? '✅ Email sent\n' : '❌ Email failed: ' + data.results.email.error + '\n';
+            }
+
+            alert(message);
+        } catch (error) {
+            console.error('Error sending report:', error);
+            alert('Failed to send report: ' + error.message + '\n\nMake sure you have configured Twilio and Email settings in backend .env file');
+        }
+    }
+
+        function setQuickFilter(filter) {
+            activeFilter = filter;
+            const today = new Date();
+            let startDate, endDate;
+
+            switch(filter) {
+                case 'today':
+                    startDate = endDate = new Date();
+                    break;
+                case 'yesterday':
+                    startDate = endDate = new Date(today.setDate(today.getDate() - 1));
+                    break;
+                case 'thisWeek':
+                    const dayOfWeek = today.getDay();
+                    const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                    startDate = new Date(today.setDate(today.getDate() - diff));
+                    endDate = new Date();
+                    break;
+                case 'thisMonth':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date();
+                    break;
+                case 'lastMonth':
+                    startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    break;
+                case 'custom':
+                    updateFilterButtonStyles();
+                    return;
+            }
+
+            if (filter !== 'custom') {
+                document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+                document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+            }
+
+            updateFilterButtonStyles();
+            render();
+        }
+
+        function updateFilterButtonStyles() {
+            const buttons = {
+                today: document.getElementById('todayBtn'),
+                yesterday: document.getElementById('yesterdayBtn'),
+                thisWeek: document.getElementById('thisWeekBtn'),
+                thisMonth: document.getElementById('thisMonthBtn'),
+                lastMonth: document.getElementById('lastMonthBtn'),
+                custom: document.getElementById('customBtn')
+            };
+
+            Object.keys(buttons).forEach(key => {
+                if (key === activeFilter) {
+                    buttons[key].className = 'px-3 py-2 rounded-lg text-sm font-medium bg-indigo-500 text-white transition';
+                } else {
+                    buttons[key].className = 'px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition';
+                }
+            });
+        }
+
+        function setType(type) {
+            currentType = type;
+            const creditBtn = document.getElementById('creditBtn');
+            const debitBtn = document.getElementById('debitBtn');
+            
+            if (type === 'credit') {
+                creditBtn.className = 'flex-1 py-3 rounded-lg font-semibold transition bg-green-500 text-white';
+                debitBtn.className = 'flex-1 py-3 rounded-lg font-semibold transition bg-gray-100 text-gray-600';
+            } else {
+                creditBtn.className = 'flex-1 py-3 rounded-lg font-semibold transition bg-gray-100 text-gray-600';
+                debitBtn.className = 'flex-1 py-3 rounded-lg font-semibold transition bg-red-500 text-white';
+            }
+        }
+
+        async function addTransaction() {
+            const amount = document.getElementById('amount').value;
+            const mode = document.getElementById('mode').value;
+            const item = document.getElementById('item').value;
+            const date = document.getElementById('date').value;
+
+            if (!amount || !item || !date) {
+                alert('Please fill in all fields, including the date');
+                return;
+            }
+
+            const transaction = {
+                type: currentType,
+                amount: parseFloat(amount),
+                mode: mode,
+                item: item,
+                date: date
+            };
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/transactions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(transaction)
+                });
+
+                if (!response.ok) throw new Error('Failed to add transaction');
+
+                const newTransaction = await response.json();
+                transactions.unshift(newTransaction);
+
+                document.getElementById('amount').value = '';
+                document.getElementById('item').value = '';
+
+                document.getElementById('startDate').value = date;
+                document.getElementById('endDate').value = date;
+                setQuickFilter('custom');
+
+                render();
+                alert('Transaction added successfully!');
+
+            } catch (error) {
+                console.error('Error adding transaction:', error);
+                alert('Failed to add transaction. Check if server is running.');
+            }
+        }
+
+        async function deleteTransaction(id) {
+            if (!confirm('Are you sure you want to delete this transaction?')) return;
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/transactions/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        handleLogout();
+                        return;
+                    }
+                    throw new Error('Failed to delete');
+                }
+
+                await loadTransactions();
+            } catch (error) {
+                console.error('Error deleting transaction:', error);
+                alert('Failed to delete transaction');
+            }
+        }
+
+        function calculateBalances() {
+            accounts.forEach(acc => acc.balance = 0);
+            
+            transactions.forEach(t => {
+                const account = accounts.find(a => a.id === t.mode);
+                if (account) {
+                    if (t.type === 'credit') {
+                        account.balance += t.amount;
+                    } else {
+                        account.balance -= t.amount;
+                    }
+                }
+            });
+        }
+
+        function getFilteredTransactions() {
+            const startStr = document.getElementById('startDate').value;
+            const endStr = document.getElementById('endDate').value;
+            const filterType = document.getElementById('filterType').value;
+
+            const filtered = transactions.filter(t => {
+                const transDate = new Date(t.date);
+                const transDateStr = transDate.toISOString().split('T')[0];
+
+                const dateMatch = transDateStr >= startStr && transDateStr <= endStr;
+                const typeMatch = filterType === 'all' || t.type === filterType;
+
+                return dateMatch && typeMatch;
+            });
+
+            return filtered;
+        }
+
+        function generateSummary() {
+            const filtered = getFilteredTransactions();
+            const totalCredit = filtered.filter(t => t.type === 'credit').reduce((sum, t) => sum + t.amount, 0);
+            const totalDebit = filtered.filter(t => t.type === 'debit').reduce((sum, t) => sum + t.amount, 0);
+            
+            let summary = '📊 EXPENSE SUMMARY\n';
+            summary += 'User: ' + currentUser.name + '\n';
+            summary += 'Period: ' + document.getElementById('startDate').value + ' to ' + document.getElementById('endDate').value + '\n\n';
+            summary += '💰 Total Credit: ₹' + totalCredit.toFixed(2) + '\n';
+            summary += '💸 Total Debit: ₹' + totalDebit.toFixed(2) + '\n';
+            summary += '📈 Net: ₹' + (totalCredit - totalDebit).toFixed(2) + '\n\n';
+            summary += '💳 ACCOUNT BALANCES:\n';
+            accounts.forEach(acc => {
+                summary += acc.name + ': ₹' + acc.balance.toFixed(2) + '\n';
+            });
+            summary += '\n📝 TRANSACTIONS (' + filtered.length + '):\n';
+            filtered.forEach(t => {
+                const formattedDate = new Date(t.date).toISOString().split('T')[0];
+                const account = accounts.find(a => a.id === t.mode);
+                const accName = account ? account.name : t.mode;
+                summary += formattedDate + ' | ' + (t.type === 'credit' ? '+' : '-') + '₹' + t.amount + ' | ' + t.item + ' | ' + accName + '\n';
+            });
+            
+            return summary;
+        }
+
+        function toggleSummarySection() {
+            showSummary = !showSummary;
+            const section = document.getElementById('summarySection');
+            const btn = document.getElementById('toggleSummary');
+            
+            if (showSummary) {
+                section.style.display = 'block';
+                btn.textContent = 'Hide Summary';
+                document.getElementById('summaryText').textContent = generateSummary();
+            } else {
+                section.style.display = 'none';
+                btn.textContent = 'Show Summary';
+            }
+        }
+
+        function downloadSummary() {
+            const summary = generateSummary();
+            const blob = new Blob([summary], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'expense-summary-' + new Date().toISOString().split('T')[0] + '.txt';
+            a.click();
+        }
+
+        function render() {
+            calculateBalances();
+            renderBalanceCards();
+            renderTransactions();
+            updateTotals();
+            if (showSummary) {
+                document.getElementById('summaryText').textContent = generateSummary();
+            }
+        }
+
+        function renderBalanceCards() {
+            const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+            const html = `
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-green-100">Total Balance</span>
+                        <span>📈</span>
+                    </div>
+                    <div class="text-2xl font-bold">₹${totalBalance.toFixed(2)}</div>
+                </div>
+                ${accounts.map(acc => `
+                    <div class="bg-white rounded-xl p-4 shadow-lg border-2 border-gray-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-600 text-sm">${acc.name}</span>
+                            <span>${acc.id === 'cash' ? '💵' : '🏦'}</span>
+                        </div>
+                        <div class="text-xl font-bold text-gray-800">₹${acc.balance.toFixed(2)}</div>
+                    </div>
+                `).join('')}
+            `;
+            document.getElementById('balanceCards').innerHTML = html;
+        }
+
+        function renderTransactions() {
+            const filtered = getFilteredTransactions();
+            document.getElementById('transCount').textContent = filtered.length;
+            const listElement = document.getElementById('transactionsList');
+
+            listElement.innerHTML = '';
+
+            if (filtered.length === 0) {
+                listElement.innerHTML = '<p class="text-gray-500 text-center py-8">No transactions found</p>';
+                return;
+            }
+
+            filtered.forEach(t => {
+                const formattedDate = new Date(t.date).toISOString().split('T')[0];
+                const account = accounts.find(a => a.id === t.mode);
+                const accName = account ? account.name : t.mode;
+
+                const mainDiv = document.createElement('div');
+                mainDiv.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition';
+
+                mainDiv.innerHTML = `
+                    <div class="flex items-center gap-4 flex-1">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center ${t.type === 'credit' ? 'bg-green-100' : 'bg-red-100'}">
+                            <span class="text-2xl">${t.type === 'credit' ? '📈' : '📉'}</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-semibold text-gray-800">${t.item}</div>
+                            <div class="text-sm text-gray-500">${formattedDate} • ${accName}</div>
+                        </div>
+                        <div class="text-lg font-bold ${t.type === 'credit' ? 'text-green-600' : 'text-red-600'}">
+                            ${t.type === 'credit' ? '+' : '-'}₹${t.amount.toFixed(2)}
+                        </div>
+                    </div>
+                    <button class="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
+                        🗑️
+                    </button>
+                `;
+
+                const deleteButton = mainDiv.querySelector('button');
+                deleteButton.onclick = () => deleteTransaction(t._id);
+
+                listElement.appendChild(mainDiv);
+            });
+        }
+
+        function updateTotals() {
+            const filtered = getFilteredTransactions();
+            const totalCredit = filtered.filter(t => t.type === 'credit').reduce((sum, t) => sum + t.amount, 0);
+            const totalDebit = filtered.filter(t => t.type === 'debit').reduce((sum, t) => sum + t.amount, 0);
+
+            document.getElementById('totalCredit').textContent = '₹' + totalCredit.toFixed(2);
+            document.getElementById('totalDebit').textContent = '₹' + totalDebit.toFixed(2);
+        }
+    </script>
+</body>
+</html>
